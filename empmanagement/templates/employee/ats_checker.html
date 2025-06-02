@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="home">
+    <div class="text">
+        <h2>Resume ATS Checker</h2>
+
+        {% if error_message %}
+            <div style="color: red;">{{ error_message }}</div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" style="margin-top: 20px;">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label for="skills_input" class="block text-sm font-medium text-gray-700">Required Skills (comma-separated):</label>
+                <div class="mt-1">
+                    <input type="text" name="skills_input" id="skills_input" value="{{ skills_input }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="resume_file" class="block text-sm font-medium text-gray-700">Upload Resume (Text file for now):</label>
+                <div class="mt-1">
+                    <input type="file" name="resume_file" id="resume_file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+            </div>
+
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Check Resume</button>
+        </form>
+
+        {% if ats_score is not None %}
+            <h3 style="margin-top: 30px;">ATS Score: {{ ats_score }}%</h3>
+            {# Display more detailed results if needed #}
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %} 

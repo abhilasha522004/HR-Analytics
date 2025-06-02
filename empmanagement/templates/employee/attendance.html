@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="home">
+    <div class="text">
+        Your Attendance
+        {% if message %}
+          <div style="color: green;">{{ message }}</div>
+        {% endif %}
+        
+        <h3>Attendance Summary</h3>
+        {# Make the canvas element smaller by wrapping it in a sized container #}
+        <div style="position: relative; width: 250px; height: 250px;">
+          <canvas id="attendanceChart"></canvas>
+        </div>
+
+        <form method="post" id="attendance-form" style="margin-top: 20px;">
+            {% csrf_token %}
+            <input type="hidden" name="att_type" id="att_type" value="">
+            <button type="button" onclick="markAttendance()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">Mark Attendance (Office/Remote)</button>
+            <button type="button" onclick="markRemote()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Mark Remote Attendance</button>
+        </form>
+
+        {# Pass data from Django to JavaScript as JSON #}
+        <script id="attendance-data" type="application/json">
+        {
+            "officeLat": {{ office.latitude|default:0.0 }},
+            "officeLon": {{ office.longitude|default:0.0 }},
+            "officeCount": {{ office_count|default:0 }},
+            "remoteCount": {{ remote_count|default:0 }},
+            "totalCount": {{ total_count|default:0 }}
+        }
+        </script>
+
+        {# Include Chart.js library #}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <script>
+        // Parse the JSON data into a JavaScript object
+        var attendanceData = JSON.parse(document.getElementById('attendance-data').textContent);
+
+        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+          var R = 6371; // Radius of the earth in km
+          var dLat = (lat2-lat1) * Math.PI/180;
+          var dLon = (lon2-lon1) * Math.PI/180;
+          var a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2)
+            ;
+          var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          var d = R * c; // Distance in km
+          return d;
+        }
+
+        function markAttendance() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+              var userLat = position.coords.latitude;
+              var userLon = position.coords.longitude;
+              
+              // Use data from the attendanceData object
+              var officeLat = attendanceData.officeLat;
+              var officeLon = attendanceData.officeLon;
+              
+              var distance = getDistanceFromLatLonInKm(userLat, userLon, officeLat, officeLon);
+
+              if (distance < 0.1) { // within 100 meters
+                document.getElementById('att_type').value = 'Office';
+                document.getElementById('attendance-form').submit();
+              } else {
+                alert('You are not at the office location. Please use Remote option if working remotely.');
+                // Do not submit the form if not at office location
+              }
+            }, function(error) {
+              alert('Unable to get your location.' + error.message);
+            });
+          } else {
+            alert('Geolocation is not supported by this browser.');
+          }
+        }
+
+        function markRemote() {
+          document.getElementById('att_type').value = 'Remote';
+          document.getElementById('attendance-form').submit();
+        }
+
+        // Chart.js code - ensure this runs after Chart.js library is loaded
+        var ctx = document.getElementById('attendanceChart').getContext('2d');
+        var attendanceChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Office', 'Remote'],
+                datasets: [{
+                    label: 'Attendance Breakdown',
+                    // Use data from the attendanceData object
+                    data: [attendanceData.officeCount, attendanceData.remoteCount],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(255, 159, 64, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Attendance Breakdown'
+                    },
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+
+        </script>
+
+        <h3 style="margin-top:30px;">Attendance History</h3>
+        <table class="min-w-full">
+          <thead class="bg-white border-b">
+            <tr>
+              <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Date</th>
+              <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for att in attendance_history %}
+            <tr class="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100">
+              <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">{{ att.date }}</td>
+              <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">{{ att.type }}</td>
+            </tr>
+            {% empty %}
+            <tr class="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100"><td colspan="2" class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">No attendance records found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
