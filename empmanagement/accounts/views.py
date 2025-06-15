@@ -6,7 +6,7 @@ from django.contrib import messages
 from employee.models import Employee
 from django.core.exceptions import ObjectDoesNotExist
 
-# Login view (unchanged)
+# Login view 
 def login_user(request):
     if request.method == "POST":
         id = request.POST["id"]
@@ -20,7 +20,7 @@ def login_user(request):
             return redirect("/")
     return render(request, "employee/Login.html")
 
-# Logout view (unchanged)
+# Logout view 
 def logout_user(request):
     logout(request)
     return redirect("/")

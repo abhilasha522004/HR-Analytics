@@ -12,15 +12,10 @@ import pandas as pd
 import joblib
 import os
 from django.conf import settings
-import docx # Import python-docx
-import PyPDF2 # Import PyPDF2
+import docx 
+import PyPDF2
 import sys
-# from employee.ml_models.custom_ml_classes import DynamicOutlierHandler
-# import joblib
-# sys.modules['__main__'].DynamicOutlierHandler = DynamicOutlierHandler
 
-
-# Create your views here.
 @login_required(login_url='/')
 def dashboard(request):
     info = Employee.objects.filter(eID=request.user.username)
@@ -32,7 +27,7 @@ def attendance(request):
     employee = Employee.objects.filter(eID=request.user.username).first()
     attendance_history = Attendance.objects.filter(eId=employee).order_by('-date') if employee else []
     
-    # Calculate attendance counts
+    
     office_count = sum(1 for att in attendance_history if att.type == 'Office')
     remote_count = sum(1 for att in attendance_history if att.type == 'Remote')
     total_count = len(attendance_history)
@@ -41,12 +36,12 @@ def attendance(request):
     if request.method == 'POST':
         att_type = request.POST.get('att_type')
         if att_type in ['Office', 'Remote'] and employee:
-            # Check if attendance already marked for today
+           
             today = timezone.now().date()
             if not Attendance.objects.filter(eId=employee, date=today).exists():
                 Attendance.objects.create(eId=employee, type=att_type)
                 message = f"Attendance marked as {att_type}."
-                # Re-fetch history and counts after marking
+               
                 attendance_history = Attendance.objects.filter(eId=employee).order_by('-date') if employee else []
                 office_count = sum(1 for att in attendance_history if att.type == 'Office')
                 remote_count = sum(1 for att in attendance_history if att.type == 'Remote')
@@ -67,7 +62,7 @@ def attendance(request):
 def notice(request):
     notices  = Notice.objects.all()
     if request.method == 'POST':
-        # Assuming you have a NoticeForm for posting notices
+       
         form = NoticeForm(request.POST)
         if form.is_valid():
             notice = form.save()
@@ -100,13 +95,13 @@ def assignWork(request):
                 messages.error(request, "Invalid ID Selected...")
             else:
                 work = form.save()
-                # Send email to assigned employee
+               
                 subject = "New Work Assigned"
                 message = f"You have been assigned new work: {work.work}"
                 recipient_list = [work.taskerId.email]
                 send_email_to_employees(subject, message, recipient_list)
                 messages.success(request, "Work is successfully assigned!")
-                return redirect("assignwork")  # Redirect to clear the form
+                return redirect("assignwork")  
     else:
         form = workform(initial=initialData)
     context["form"] = form
@@ -140,7 +135,7 @@ def makeRequest(request):
             else:
                 flag="Request Submitted"
                 req = requestForm.save()
-                # Send email to destination employee
+              
                 subject = "New Request Issued"
                 message = f"A new request has been issued by {req.requesterId.firstName}."
                 recipient_list = [req.destinationEmployeeId.email]
@@ -285,47 +280,43 @@ def ats_checker(request):
         if 'resume_file' in request.FILES:
             resume_file = request.FILES['resume_file']
             
-            # --- Logic for Reading Resume Content based on File Type ---
+           
             try:
                 file_extension = os.path.splitext(resume_file.name)[1].lower()
                 
                 if file_extension == '.pdf':
-                    # Read PDF file
+                   
                     reader = PyPDF2.PdfReader(resume_file)
                     resume_text = ''.join([page.extract_text() for page in reader.pages])
                 elif file_extension == '.docx':
-                    # Read DOCX file
+                   
                     document = docx.Document(resume_file)
                     resume_text = '\n'.join([paragraph.text for paragraph in document.paragraphs])
                 elif file_extension == '.txt':
-                    # Read plain text file
+                  
                     resume_text = resume_file.read().decode('utf-8')
                 else:
                     error_message = "Unsupported file type. Please upload a .pdf, .docx, or .txt file."
 
-                # --- Placeholder for ATS Checking Logic (using resume_text) ---
-                # This is where you would compare the skills_input to the resume_text
-                # and calculate an ATS score or matching percentage.
-                # The exact logic depends on your requirements.
 
                 if not error_message and skills_input and resume_text:
-                    # Simple example: count how many skills appear in the resume text
+                   
                     required_skills = [skill.strip() for skill in skills_input.split(',')]
                     matching_skills_count = sum(skill.lower() in resume_text.lower() for skill in required_skills)
                     total_skills = len(required_skills)
                     
                     if total_skills > 0:
                          ats_score = (matching_skills_count / total_skills) * 100
-                         ats_score = round(ats_score, 2) # Round to 2 decimal places
+                         ats_score = round(ats_score, 2) 
                     else:
-                         ats_score = 0 # No skills provided
+                         ats_score = 0 
 
                 elif not error_message and not skills_input:
                      error_message = "Please provide required skills."
                 elif not error_message and not resume_text:
                      error_message = "Could not extract text from the resume file."
 
-                # ---------------------------------------------------------
+                
 
             except Exception as e:
                 error_message = f"Error reading resume file or processing: {e}"
