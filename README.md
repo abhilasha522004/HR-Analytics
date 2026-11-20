@@ -41,8 +41,8 @@ A comprehensive Django-based HR Analytics and Employee Management System that he
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd HR_Analytics
+git clone https://github.com/abhilasha522004/HR-Analytics.git
+cd HR-Analytics/empmanagement
 ```
 
 2. Create and activate a virtual environment:
@@ -85,50 +85,25 @@ HR_Analytics/
 └── manage.py            # Django management script
 ```
 
-## Future Integrations
+## ML & Analytics Module (Streamlit)
 
-### 1. Advanced Analytics
-- Machine Learning integration for predictive analytics
-- Employee turnover prediction
-- Performance trend analysis
-- Custom dashboard creation
+`empmanagement/employee/ml_models/app.py` is a Streamlit dashboard for HR teams:
 
-### 2. API Development
-- RESTful API endpoints for mobile applications
-- Third-party integrations
-- Webhook support for real-time updates
+- **Attrition prediction:** scikit-learn pipeline predicting employee turnover probability (89% accuracy)
+- **Workforce segmentation:** K-Means clustering of employees, with cluster centroids for review
+- **Feedback sentiment analysis:** sentiment scoring and word clouds on employee feedback
+- **Resume / ATS matcher:** scores resumes against job descriptions to find skill gaps
+- **Course recommendations:** suggests training courses for identified skill gaps
 
-### 3. Enhanced Features
-- Document management system
-- Employee onboarding workflow
-- Training and development tracking
-- Compensation management
-- Benefits administration
+```bash
+cd empmanagement/employee/ml_models
+streamlit run app.py
+```
 
-### 4. Mobile Application
-- Native mobile apps for iOS and Android
-- Push notifications
-- Mobile-friendly interfaces
-- Offline capabilities
-
-### 5. Integration Capabilities
-- Integration with popular HR tools
-- Payroll system integration
-- Time tracking software
-- Calendar and scheduling systems
-- Email and communication tools
-
-### 6. Security Enhancements
-- Two-factor authentication
-- Advanced encryption
-- Audit logging
-- Compliance management
-
-### 7. Reporting and Visualization
-- Advanced data visualization
-- Custom report builder
-- Export capabilities (PDF, Excel, CSV)
-- Automated report scheduling
+## Roadmap
+- REST API for mobile and third-party integrations
+- Audit logging and two-factor authentication
+- Scheduled report exports (PDF, Excel, CSV)
 
 ## Contributing
 
